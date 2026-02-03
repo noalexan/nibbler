@@ -1,3 +1,2 @@
-./nibbler
-
-*.o
+.cache/
+build/

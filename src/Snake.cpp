@@ -1,4 +1,4 @@
-#include <nibbler/Board.hpp>
+#include <nibbler.hpp>
 
 Board::Snake::SnakeBlock::SnakeBlock(Board &board, const Coordinates &_coord)
     : _coordinates(_coord), _tile(board.getTile(_coord))
@@ -23,9 +23,7 @@ void Board::Snake::changeDirection(enum SnakeDirections direction)
 		_snakeDirectionDelay = direction;
 }
 
-void Board::Snake::feed() {
-	_snakeBlocks.push_back(nullptr);
-}
+void Board::Snake::feed() { _snakeBlocks.push_back(nullptr); }
 
 void Board::Snake::update()
 {
@@ -50,22 +48,19 @@ void Board::Snake::update()
 	}
 
 	switch (_board.getTile(coord)) {
-	case TileTypes::GreenApple:
-		feed();
-		break;
 	case TileTypes::RedApple:
 		_snakeBlocks.pop_back();
-		if (_snakeBlocks.size() == 0)
-			_isDead = true;
+		_isDead = (_snakeBlocks.size() == 0);
 		break;
 	case TileTypes::Wall:
 	case TileTypes::Snake:
 		_isDead = true;
 		break;
+	case TileTypes::GreenApple:
+		feed();
 	default:
+		_snakeBlocks.push_front(std::make_unique<SnakeBlock>(_board, coord));
+		_snakeBlocks.pop_back();
 		break;
 	}
-
-	_snakeBlocks.push_front(std::make_unique<SnakeBlock>(_board, coord));
-	_snakeBlocks.pop_back();
 }

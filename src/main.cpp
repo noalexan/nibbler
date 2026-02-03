@@ -1,71 +1,29 @@
+#include <GLFW/glfw3.h>
 #include <chrono>
 #include <cstdlib>
 #include <dlfcn.h>
 #include <iostream>
-#include <memory>
-#include <nibbler/Board.hpp>
-#include <nibbler/init.hpp>
+#include <nibbler.hpp>
 #include <thread>
 #include <unistd.h>
 
-class NibblerABI {
-private:
-	void        *_linkedLibrary;
-	const char  *_error;
-
-	static void *load_library(const std::string &_library_path)
-	{
-		void       *linkedLibrary = dlopen(_library_path.c_str(), RTLD_LAZY);
-		const char *error;
-
-		if ((error = dlerror())) {
-			throw UnableToLoadLibraryException(error);
-		}
-
-		return linkedLibrary;
-	}
-
-public:
-	class UnableToLoadLibraryException : public std::runtime_error {
-	public:
-		UnableToLoadLibraryException(const char *_error) : runtime_error(_error) {}
-	};
-
-	class UnableToLoadFnException : public std::runtime_error {
-	public:
-		UnableToLoadFnException(const char *_error) : runtime_error(_error) {}
-	};
-
-	NibblerABI(const std::string &_library_path)
-	    : _linkedLibrary(load_library(_library_path)),
-	      init(load_fn<NibblerInitFn>(NIBBLER_INIT_FN_SYM)),
-	      deinit(load_fn<NibblerDeinitFn>(NIBBLER_DEINIT_FN_SYM)),
-	      get_gui(load_fn<NibblerGetGUIFn>(NIBBLER_GET_GUI_FN_SYM))
-	{
-	}
-
-	~NibblerABI() { dlclose(_linkedLibrary); }
-
-	NibblerInitFn           init;
-	NibblerDeinitFn         deinit;
-	NibblerGetGUIFn         get_gui;
-
-	template <typename T> T load_fn(const char *symbol_name)
-	{
-		void *fn = dlsym(_linkedLibrary, symbol_name);
-
-		if ((_error = dlerror())) {
-			throw UnableToLoadFnException(_error);
-		}
-
-		return reinterpret_cast<T>(fn);
-	}
-};
-
-void input_polling_loop(Board *board, NibblerGUI *gui)
+void input_polling_loop(GLFWwindow *window, Board *board)
 {
 	while (board->isStopped() == false && board->getSnake()->isDead() == false) {
-		gui->poll_inputs();
+		glfwPollEvents();
+
+		if (glfwWindowShouldClose(window)) {
+			board->stop();
+		}
+
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			board->getSnake()->changeDirection(SnakeDirections::Up);
+		else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			board->getSnake()->changeDirection(SnakeDirections::Left);
+		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			board->getSnake()->changeDirection(SnakeDirections::Down);
+		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			board->getSnake()->changeDirection(SnakeDirections::Right);
 	}
 }
 
@@ -88,47 +46,111 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	assert(optind == argc - 1); // Assert there is lib path after opts
+	Board *board = new Board(width, height);
 
-	auto board = std::make_shared<Board>(width, height);
+	if (!glfwInit()) {
+		std::cerr << "Failed to init GLFW" << std::endl;
+	}
+
+	GLFWwindow *window = glfwCreateWindow(500, 500, "nibbler", NULL, NULL);
+	if (!window) {
+		std::cerr << "Failed to create GLFW window" << std::endl;
+		return -1;
+	}
+
+	glfwMakeContextCurrent(window);
+
+	int bufferWidth, bufferHeight;
+	glfwGetFramebufferSize(window, &bufferWidth, &bufferHeight);
+	glViewport(0, 0, bufferWidth, bufferHeight);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(0.0f, board->getWidth(), board->getHeight(), 0.0f, -1.0f, 1.0f);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
 	/**/
 
-	NibblerABI dflt(argv[optind]);
+	std::thread    inputPoller(input_polling_loop, window, board);
 
-	dflt.init(board.get());
-
-	NibblerGUI *gui = dflt.get_gui();
-
-	std::thread inputPoller(input_polling_loop, board.get(), gui);
-
-	constexpr auto        frame_time = std::chrono::milliseconds(1000 / 8); // ~8fps
+	constexpr auto frame_time = std::chrono::milliseconds(1000 / 8); // ~8fps
 
 	while (board->isStopped() == false && board->getSnake()->isDead() == false) {
 		auto start_time = std::chrono::high_resolution_clock::now();
 
-		gui->render();
 		board->update();
+
+		glfwMakeContextCurrent(window);
+
+		int bufferWidth, bufferHeight;
+		glfwGetFramebufferSize(window, &bufferWidth, &bufferHeight);
+		glViewport(0, 0, bufferWidth, bufferHeight);
+
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		const enum TileTypes *raw    = board->getRawBoard();
+		size_t                width  = board->getWidth();
+		size_t                height = board->getHeight();
+
+		glBegin(GL_QUADS);
+		for (size_t y = 0; y < height; ++y) {
+			for (size_t x = 0; x < width; ++x) {
+				TileTypes tile = board->at(x, y);
+
+				if (tile == TileTypes::Empty)
+					continue;
+
+				switch (tile) {
+				case TileTypes::GreenApple:
+					glColor3f(0.2f, 0.8f, 0.2f);
+					break;
+				case TileTypes::RedApple:
+					glColor3f(0.8f, 0.2f, 0.2f);
+					break;
+				case TileTypes::Snake:
+					glColor3f(0.8f, 0.5f, 0.3f);
+					break;
+				case TileTypes::Way:
+					glColor3f(0.1f, 0.15f, 0.2f);
+					break;
+				case TileTypes::Wall:
+					glColor3f(0.9f, 0.9f, 0.9f);
+					break;
+				default:
+					break;
+				}
+
+				glVertex2f(x, y);
+				glVertex2f(x + 1, y);
+				glVertex2f(x + 1, y + 1);
+				glVertex2f(x, y + 1);
+			}
+		}
+		glEnd();
+
+		glfwSwapBuffers(window);
 
 		auto elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
 		if (elapsed_time < frame_time) {
 			std::this_thread::sleep_for(frame_time - elapsed_time);
 		}
-
-		elapsed_time = std::chrono::high_resolution_clock::now() - start_time;
-		std::cout << "\r\033[2Kfps: " << std::chrono::duration<double>(elapsed_time) / std::chrono::duration<double>(frame_time) * 8 << std::flush;
 	}
-	
-	std::cout << "\n";
-	std::this_thread::sleep_for(std::chrono::microseconds(30000));
+
+	std::this_thread::sleep_for(std::chrono::seconds(3));
 
 	if (inputPoller.joinable()) {
 		inputPoller.join();
 	}
 
-	dflt.deinit();
-
 	/**/
+
+	delete board;
+
+	glfwDestroyWindow(window);
+	glfwTerminate();
 
 	return 0;
 }

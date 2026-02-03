@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
-#include <nibbler/Board.hpp>
+#include <nibbler.hpp>
 #include <queue>
 #include <random>
 
