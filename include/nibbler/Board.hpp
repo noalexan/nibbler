@@ -1,0 +1,94 @@
+#pragma once
+
+#include <assert.h>
+#include <cstdint>
+#include <deque>
+#include <memory>
+#include <unistd.h>
+#include <vector>
+
+#define DEFAULT_HEIGHT     10
+#define DEFAULT_WIDTH      10
+#define DEFAULT_SNAKE_SIZE 3
+
+using Coordinates = std::pair<size_t, size_t>;
+
+enum SnakeDirections : uint8_t { Up, Down, Left, Right };
+enum TileTypes : uint8_t { Empty, Wall, GreenApple, RedApple, Snake, Way };
+
+class Board {
+public:
+	class Snake {
+	private:
+		Board               &_board;
+
+		enum SnakeDirections _snakeDirection = SnakeDirections::Right, _snakeDirectionDelay;
+
+		bool                 _isDead         = false;
+
+		class SnakeBlock {
+		private:
+			enum TileTypes &_tile;
+			Coordinates     _coordinates;
+
+		public:
+			SnakeBlock(Board &board, const Coordinates &_coord);
+			virtual ~SnakeBlock();
+
+			inline const Coordinates &getCoordinates() const { return this->_coordinates; }
+			inline enum TileTypes     getTile() const { return this->_tile; }
+		};
+
+		std::deque<std::unique_ptr<SnakeBlock>> _snakeBlocks;
+
+		void                                    feed();
+
+	public:
+		Snake(Board &board);
+		virtual ~Snake();
+
+		inline const bool isDead() const { return this->_isDead; }
+
+		void              changeDirection(enum SnakeDirections);
+
+		inline const Coordinates &getHead() const { return _snakeBlocks.front()->getCoordinates(); }
+		inline const std::deque<std::unique_ptr<SnakeBlock>> &getBlocks() const { return _snakeBlocks; }
+
+		void              update();
+	};
+
+private:
+	std::unique_ptr<Snake>      _snake;
+
+	std::vector<enum TileTypes> _board;
+	size_t                      _width;
+	size_t                      _height;
+
+	bool                        _stopped = false;
+
+	inline enum TileTypes      &getTile(const Coordinates &coord)
+	{
+		return _board[coord.second * _width + coord.first];
+	}
+
+public:
+	Board(size_t width, size_t height);
+	virtual ~Board();
+
+	inline size_t                getWidth() const { return _width; }
+	inline size_t                getHeight() const { return _height; }
+	inline const enum TileTypes *getRawBoard() const { return _board.data(); }
+	inline Snake                *getSnake() const { return _snake.get(); }
+	inline void                  stop() { _stopped = true; }
+	inline bool                  isStopped() const { return _stopped; }
+
+	inline enum TileTypes        at(int x, int y) const { return _board.at(y * _width + x); }
+	inline enum TileTypes        at(const Coordinates &coord) const
+	{
+		return at(coord.first, coord.second);
+	}
+
+	void spawnTile(enum TileTypes);
+
+	void update();
+};
