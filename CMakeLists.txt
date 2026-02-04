@@ -18,3 +18,16 @@ add_executable(nibbler ${CMAKE_SOURCE_DIR}/src/main.cpp)
 target_link_libraries(nibbler PRIVATE OpenGL::GL glfw core)
 
 target_compile_features(nibbler PRIVATE cxx_std_17)
+
+install(TARGETS core
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+
+install(TARGETS nibbler
+    RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/
+    DESTINATION include
+)

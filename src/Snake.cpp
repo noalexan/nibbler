@@ -3,7 +3,7 @@
 Board::Snake::SnakeBlock::SnakeBlock(Board &board, const Coordinates &_coord)
     : _coordinates(_coord), _tile(board.getTile(_coord))
 {
-	_tile = TileTypes::Snake;
+	_tile = TileTypes::SnakeBody;
 }
 
 Board::Snake::SnakeBlock::~SnakeBlock() { _tile = TileTypes::Empty; }
@@ -23,44 +23,31 @@ void Board::Snake::changeDirection(enum SnakeDirections direction)
 		_snakeDirectionDelay = direction;
 }
 
-void Board::Snake::feed() { _snakeBlocks.push_back(nullptr); }
-
 void Board::Snake::update()
 {
-	Coordinates coord = getHead();
-
-	switch ((_snakeDirection = _snakeDirectionDelay)) {
-	case SnakeDirections::Up:
-		coord.second--;
-		break;
-
-	case SnakeDirections::Down:
-		coord.second++;
-		break;
-
-	case SnakeDirections::Left:
-		coord.first--;
-		break;
-
-	case SnakeDirections::Right:
-		coord.first++;
-		break;
-	}
+	Coordinates coord                                   = getHead();
+	_snakeDirection                                     = _snakeDirectionDelay;
+	(_snakeDirection & 2 ? coord.first : coord.second) += _snakeDirection & 1 ? 1 : -1;
 
 	switch (_board.getTile(coord)) {
-	case TileTypes::RedApple:
-		_snakeBlocks.pop_back();
-		_isDead = (_snakeBlocks.size() == 0);
-		break;
 	case TileTypes::Wall:
-	case TileTypes::Snake:
-		_isDead = true;
+	case TileTypes::SnakeBody:
+		die();
 		break;
-	case TileTypes::GreenApple:
-		feed();
+
+	case TileTypes::RedApple:
+		if (_snakeBlocks.size() & ~1) {
+			_snakeBlocks.pop_back();
+		} else {
+			die();
+			break;
+		}
+
 	default:
-		_snakeBlocks.push_front(std::make_unique<SnakeBlock>(_board, coord));
 		_snakeBlocks.pop_back();
+
+	case TileTypes::GreenApple:
+		_snakeBlocks.push_front(std::make_unique<SnakeBlock>(_board, coord));
 		break;
 	}
 }

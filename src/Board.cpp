@@ -69,10 +69,10 @@ void Board::update()
 
 	_snake->update();
 
-	while (std::count(_board.begin(), _board.end(), TileTypes::GreenApple) < 32)
+	while (std::count(_board.begin(), _board.end(), TileTypes::GreenApple) < DEFAULT_GREEN_APPLES)
 		spawnTile(TileTypes::GreenApple);
 
-	while (std::count(_board.begin(), _board.end(), TileTypes::RedApple) < 1)
+	while (std::count(_board.begin(), _board.end(), TileTypes::RedApple) < DEFAULT_RED_APPLES)
 		spawnTile(TileTypes::RedApple);
 
 	// Path finding
@@ -114,7 +114,7 @@ void Board::update()
 
 			if (0 <= nx && nx < _width && 0 <= nx && ny < _height) {
 				if (parent[ny][nx] == unvisited) {
-					if (is_any_of(at(nx, ny), TileTypes::Wall, TileTypes::Snake,
+					if (is_any_of(at(nx, ny), TileTypes::Wall, TileTypes::SnakeBody,
 					              TileTypes::RedApple)) {
 						parent[ny][nx] = obstacle;
 					} else {

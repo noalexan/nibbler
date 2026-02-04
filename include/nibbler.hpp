@@ -7,14 +7,16 @@
 #include <unistd.h>
 #include <vector>
 
-#define DEFAULT_HEIGHT     10
-#define DEFAULT_WIDTH      10
-#define DEFAULT_SNAKE_SIZE 3
+#define DEFAULT_HEIGHT       10
+#define DEFAULT_WIDTH        10
+#define DEFAULT_SNAKE_SIZE   3
+#define DEFAULT_GREEN_APPLES 2
+#define DEFAULT_RED_APPLES   1
 
 using Coordinates = std::pair<size_t, size_t>;
 
 enum SnakeDirections : uint8_t { Up, Down, Left, Right };
-enum TileTypes : uint8_t { Empty, Wall, GreenApple, RedApple, Snake, Way };
+enum TileTypes : uint8_t { Empty, Wall, GreenApple, RedApple, SnakeBody, Way };
 
 class Board {
 public:
@@ -39,22 +41,25 @@ public:
 			inline enum TileTypes     getTile() const { return this->_tile; }
 		};
 
-		std::deque<std::unique_ptr<SnakeBlock>> _snakeBlocks;
+		inline void                             die() { _isDead = true; }
 
-		void                                    feed();
+		std::deque<std::unique_ptr<SnakeBlock>> _snakeBlocks;
 
 	public:
 		Snake(Board &board);
 		virtual ~Snake();
 
-		inline const bool isDead() const { return this->_isDead; }
+		inline bool               isDead() const { return this->_isDead; }
 
-		void              changeDirection(enum SnakeDirections);
+		void                      changeDirection(enum SnakeDirections);
 
 		inline const Coordinates &getHead() const { return _snakeBlocks.front()->getCoordinates(); }
-		inline const std::deque<std::unique_ptr<SnakeBlock>> &getBlocks() const { return _snakeBlocks; }
+		inline const std::deque<std::unique_ptr<SnakeBlock>> &getBlocks() const
+		{
+			return _snakeBlocks;
+		}
 
-		void              update();
+		void update();
 	};
 
 private:

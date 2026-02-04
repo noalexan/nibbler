@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 				case TileTypes::RedApple:
 					glColor3f(0.8f, 0.2f, 0.2f);
 					break;
-				case TileTypes::Snake:
+				case TileTypes::SnakeBody:
 					glColor3f(0.8f, 0.5f, 0.3f);
 					break;
 				case TileTypes::Way:
