@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <nibbler.hpp>
 
 Board::Snake::SnakeBlock::SnakeBlock(Board &board, const Coordinates &_coord)
@@ -23,9 +22,20 @@ Coordinates &operator+=(Coordinates &a, const Coordinates &b)
 
 Board::Snake::Snake(Board &board, unsigned int base_snake_size) : _board(board)
 {
-	Coordinates base_snake_head(rand() % (board.getWidth() - 2), rand() % (board.getHeight() - 2));
-	const int   idx = rand() % 4;
+	Coordinates base_snake_head = {board.randomInt(board.getWidth() - 2) + 1,
+	                               board.randomInt(board.getHeight() - 2) + 1};
 
+	std::vector<int> valid_directions;
+	if (base_snake_head.first > base_snake_size - 1)
+		valid_directions.push_back(SnakeDirections::Left);
+	if (base_snake_head.first + base_snake_size - 1 < board.getWidth() - 1)
+		valid_directions.push_back(SnakeDirections::Right);
+	if (base_snake_head.second > base_snake_size - 1)
+		valid_directions.push_back(SnakeDirections::Up);
+	if (base_snake_head.second + base_snake_size - 1 < board.getHeight() - 1)
+		valid_directions.push_back(SnakeDirections::Down);
+
+	int idx              = valid_directions[board.randomInt(valid_directions.size())];
 	_snakeDirection      = static_cast<enum SnakeDirections>(idx ^ 1);
 	_snakeDirectionDelay = _snakeDirection;
 

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <deque>
 #include <memory>
+#include <random>
 #include <unistd.h>
 #include <vector>
 
@@ -79,6 +80,8 @@ private:
 
 	std::vector<enum TileTypes> _board;
 
+	std::mt19937_64 _rng;
+
 	size_t _width;
 	size_t _height;
 
@@ -86,6 +89,12 @@ private:
 	unsigned int _how_many_red_apples;
 
 	bool _stopped = false;
+
+	inline size_t randomInt(size_t max)
+	{
+		std::uniform_int_distribution<size_t> dist(0, max - 1);
+		return dist(_rng);
+	}
 
 	inline enum TileTypes &getTile(const Coordinates &coord)
 	{

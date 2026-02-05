@@ -1,6 +1,4 @@
 #include <algorithm>
-#include <cstdlib>
-#include <ctime>
 #include <functional>
 #include <nibbler.hpp>
 
@@ -32,7 +30,7 @@ Board::Board(size_t width, size_t height, unsigned int how_many_green_apples,
 	assert((base_snake_size * 2) <= _width && _width <= 256);
 	assert((base_snake_size * 2) <= _height && _height <= 256);
 
-	srand(time(0));
+	_rng.seed(std::random_device{}());
 
 	_board.resize(_width * _height, TileTypes::Empty);
 
@@ -42,6 +40,11 @@ Board::Board(size_t width, size_t height, unsigned int how_many_green_apples,
 				_board[y * _width + x] = TileTypes::Wall;
 
 	_snake = std::make_unique<Snake>(*this, base_snake_size);
+
+	for (unsigned int i = 0; i < _how_many_green_apples; i++)
+		spawnTile(TileTypes::GreenApple);
+	for (unsigned int i = 0; i < _how_many_red_apples; i++)
+		spawnTile(TileTypes::RedApple);
 }
 
 Board::~Board() {}
@@ -56,7 +59,7 @@ void Board::spawnTile(enum TileTypes tile)
 			empty_tiles_refs.push_back(i);
 
 	if (!empty_tiles_refs.empty())
-		empty_tiles_refs[rand() % empty_tiles_refs.size()].get() = tile;
+		empty_tiles_refs[randomInt(empty_tiles_refs.size())].get() = tile;
 }
 
 #ifndef NPATHFINDING
@@ -121,7 +124,7 @@ void Board::update()
 			int nx = current.first + dx[i];
 			int ny = current.second + dy[i];
 
-			if (0 <= nx && nx < _width && 0 <= nx && ny < _height) {
+			if (0 <= nx && nx < _width && 0 <= ny && ny < _height) {
 				if (parent[ny][nx] == unvisited) {
 					if (is_any_of(at(nx, ny), TileTypes::Wall, TileTypes::SnakeBody,
 					              TileTypes::RedApple)) {
