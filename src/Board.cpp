@@ -1,33 +1,44 @@
 #include <algorithm>
 #include <functional>
-#include <iostream>
 #include <nibbler.hpp>
 #include <queue>
 #include <random>
 
-Board::Board(size_t width, size_t height) : _width(width), _height(height)
+Board::Board() : Board(DEFAULT_WIDTH, DEFAULT_HEIGHT) {}
+
+Board::Board(size_t width, size_t height)
+    : Board(width, height, DEFAULT_GREEN_APPLES, DEFAULT_RED_APPLES)
 {
-	assert((DEFAULT_SNAKE_SIZE * 2) <= width && width <= 256);
-	assert((DEFAULT_SNAKE_SIZE * 2) <= height && height <= 256);
-
-	_board.resize(width * height);
-
-	for (size_t y = 0; y < height; y++)
-		for (size_t x = 0; x < width; x++)
-			_board[y * width + x] = (y == 0 || y == height - 1 || x == 0 || x == width - 1)
-			                            ? TileTypes::Wall
-			                            : TileTypes::Empty;
-
-	size_t bes = sizeof(_board.front()); // Board Element Size
-	size_t bs  = _board.size() * bes;    // Board Size
-
-	std::cout << "Width: " << width << ", height: " << height << std::endl;
-	std::cout << "Board size: " << bs / 1000 << "Kb (" << bs << ")" << std::endl;
-
-	_snake = std::make_unique<Snake>(*this);
 }
 
-Board::~Board() { std::cout << "Goodbye." << std::endl; }
+Board::Board(size_t width, size_t height, unsigned int how_many_green_apples,
+             unsigned int how_many_red_apples)
+    : Board(width, height, how_many_green_apples, how_many_red_apples, DEFAULT_SNAKE_SIZE)
+{
+}
+
+Board::Board(size_t width, size_t height, unsigned int how_many_green_apples,
+             unsigned int how_many_red_apples, unsigned int base_snake_size)
+{
+	_width                 = width;
+	_height                = height;
+	_how_many_green_apples = how_many_green_apples;
+	_how_many_red_apples   = how_many_red_apples;
+
+	assert((DEFAULT_SNAKE_SIZE * 2) <= _width && _width <= 256);
+	assert((DEFAULT_SNAKE_SIZE * 2) <= _height && _height <= 256);
+
+	_board.resize(_width * _height, TileTypes::Empty);
+
+	for (size_t y = 0; y < _height; y++)
+		for (size_t x = 0; x < _width; x++)
+			if (y == 0 || y == _height - 1 || x == 0 || x == _width - 1)
+				_board[y * _width + x] = TileTypes::Wall;
+
+	_snake = std::make_unique<Snake>(*this, base_snake_size);
+}
+
+Board::~Board() {}
 
 void Board::spawnTile(enum TileTypes tile)
 {
@@ -37,11 +48,9 @@ void Board::spawnTile(enum TileTypes tile)
 		std::vector<std::reference_wrapper<enum TileTypes>> empty_tiles_refs;
 		empty_tiles_refs.reserve(empty_tiles_count);
 
-		for (auto &i : _board) {
-			if (i == TileTypes::Empty) {
+		for (auto &i : _board)
+			if (i == TileTypes::Empty)
 				empty_tiles_refs.push_back(i);
-			}
-		}
 
 		std::random_device              rd;
 		std::mt19937                    gen(rd());
@@ -54,28 +63,28 @@ void Board::spawnTile(enum TileTypes tile)
 	}
 }
 
-template <typename T, typename... Args> bool is_any_of(const T &val, Args... args)
+template <typename T, typename... Args> static bool is_any_of(const T &val, Args... args)
 {
 	return ((val == args) || ...);
 }
 
 void Board::update()
 {
-	for (auto &i : _board) {
-		if (i == TileTypes::Way) {
+	for (auto &i : _board)
+		if (i == TileTypes::Way)
 			i = TileTypes::Empty;
-		}
-	}
 
 	_snake->update();
 
-	while (std::count(_board.begin(), _board.end(), TileTypes::GreenApple) < DEFAULT_GREEN_APPLES)
+	for (unsigned int count = std::count(_board.begin(), _board.end(), TileTypes::GreenApple);
+	     count < _how_many_green_apples; count++)
 		spawnTile(TileTypes::GreenApple);
 
-	while (std::count(_board.begin(), _board.end(), TileTypes::RedApple) < DEFAULT_RED_APPLES)
+	for (unsigned int count = std::count(_board.begin(), _board.end(), TileTypes::RedApple);
+	     count < _how_many_red_apples; count++)
 		spawnTile(TileTypes::RedApple);
 
-	// Path finding
+#ifndef NPATHFINDING
 	constexpr int                         dx[]      = {0, 0, -1, 1};
 	constexpr int                         dy[]      = {-1, 1, 0, 0};
 
@@ -133,12 +142,13 @@ void Board::update()
 		}
 	}
 
-	// if (is_any_of(at(head.first, head.second - 1), TileTypes::Way, TileTypes::GreenApple))
-	// 	_snake->changeDirection(SnakeDirections::Up);
-	// else if (is_any_of(at(head.first, head.second + 1), TileTypes::Way, TileTypes::GreenApple))
-	// 	_snake->changeDirection(SnakeDirections::Down);
-	// else if (is_any_of(at(head.first - 1, head.second), TileTypes::Way, TileTypes::GreenApple))
-	// 	_snake->changeDirection(SnakeDirections::Left);
-	// else if (is_any_of(at(head.first + 1, head.second), TileTypes::Way, TileTypes::GreenApple))
-	// 	_snake->changeDirection(SnakeDirections::Right);
+	if (is_any_of(at(head.first, head.second - 1), TileTypes::Way, TileTypes::GreenApple))
+		_snake->changeDirection(SnakeDirections::Up);
+	else if (is_any_of(at(head.first, head.second + 1), TileTypes::Way, TileTypes::GreenApple))
+		_snake->changeDirection(SnakeDirections::Down);
+	else if (is_any_of(at(head.first - 1, head.second), TileTypes::Way, TileTypes::GreenApple))
+		_snake->changeDirection(SnakeDirections::Left);
+	else if (is_any_of(at(head.first + 1, head.second), TileTypes::Way, TileTypes::GreenApple))
+		_snake->changeDirection(SnakeDirections::Right);
+#endif
 }

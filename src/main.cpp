@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 
 	std::thread    inputPoller(input_polling_loop, window, board);
 
-	constexpr auto frame_time = std::chrono::milliseconds(1000 / 8); // ~8fps
+	constexpr auto frame_time = std::chrono::milliseconds(1000 / 240); // ~240fps
 
 	while (board->isStopped() == false && board->getSnake()->isDead() == false) {
 		auto start_time = std::chrono::high_resolution_clock::now();
@@ -138,8 +138,6 @@ int main(int argc, char *argv[])
 			std::this_thread::sleep_for(frame_time - elapsed_time);
 		}
 	}
-
-	std::this_thread::sleep_for(std::chrono::seconds(3));
 
 	if (inputPoller.joinable()) {
 		inputPoller.join();

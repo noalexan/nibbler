@@ -8,10 +8,11 @@ Board::Snake::SnakeBlock::SnakeBlock(Board &board, const Coordinates &_coord)
 
 Board::Snake::SnakeBlock::~SnakeBlock() { _tile = TileTypes::Empty; }
 
-Board::Snake::Snake(Board &board) : _board(board), _snakeDirectionDelay(_snakeDirection)
+Board::Snake::Snake(Board &board, unsigned int base_snake_size)
+    : _board(board), _snakeDirectionDelay(_snakeDirection)
 {
 	Coordinates base_snake_head(board.getWidth() / 2, board.getHeight() / 2);
-	for (int i = 0; i < DEFAULT_SNAKE_SIZE; i++, base_snake_head.first--)
+	for (int i = 0; i < base_snake_size; i++, base_snake_head.first--)
 		_snakeBlocks.push_back(std::make_unique<SnakeBlock>(_board, base_snake_head));
 }
 

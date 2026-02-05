@@ -47,6 +47,8 @@ public:
 
 	public:
 		Snake(Board &board);
+		Snake(Board &board, unsigned int base_snake_size);
+
 		virtual ~Snake();
 
 		inline bool               isDead() const { return this->_isDead; }
@@ -66,8 +68,12 @@ private:
 	std::unique_ptr<Snake>      _snake;
 
 	std::vector<enum TileTypes> _board;
+
 	size_t                      _width;
 	size_t                      _height;
+
+	unsigned int                _how_many_green_apples;
+	unsigned int                _how_many_red_apples;
 
 	bool                        _stopped = false;
 
@@ -77,7 +83,15 @@ private:
 	}
 
 public:
+	Board();
 	Board(size_t width, size_t height);
+
+	Board(size_t width, size_t height, unsigned int how_many_green_apples,
+	      unsigned int how_many_red_apples);
+
+	Board(size_t width, size_t height, unsigned int how_many_green_apples,
+	      unsigned int how_many_red_apples, unsigned int base_snake_size);
+
 	virtual ~Board();
 
 	inline size_t                getWidth() const { return _width; }
