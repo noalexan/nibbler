@@ -16,7 +16,16 @@
 using Coordinates = std::pair<size_t, size_t>;
 
 enum SnakeDirections : uint8_t { Up, Down, Left, Right };
-enum TileTypes : uint8_t { Empty, Wall, GreenApple, RedApple, SnakeBody, Way };
+enum TileTypes : uint8_t {
+	Empty,
+	Wall,
+	GreenApple,
+	RedApple,
+	SnakeBody,
+#ifndef NPATHFINDING
+	Way
+#endif
+};
 
 class Board {
 public:

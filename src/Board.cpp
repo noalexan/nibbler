@@ -25,8 +25,8 @@ Board::Board(size_t width, size_t height, unsigned int how_many_green_apples,
 	_how_many_green_apples = how_many_green_apples;
 	_how_many_red_apples   = how_many_red_apples;
 
-	assert((DEFAULT_SNAKE_SIZE * 2) <= _width && _width <= 256);
-	assert((DEFAULT_SNAKE_SIZE * 2) <= _height && _height <= 256);
+	assert((base_snake_size * 2) <= _width && _width <= 256);
+	assert((base_snake_size * 2) <= _height && _height <= 256);
 
 	_board.resize(_width * _height, TileTypes::Empty);
 
@@ -60,16 +60,20 @@ void Board::spawnTile(enum TileTypes tile)
 	}
 }
 
+#ifndef NPATHFINDING
 template <typename T, typename... Args> static bool is_any_of(const T &val, Args... args)
 {
 	return ((val == args) || ...);
 }
+#endif
 
 void Board::update()
 {
+#ifndef NPATHFINDING
 	for (auto &i : _board)
 		if (i == TileTypes::Way)
 			i = TileTypes::Empty;
+#endif
 
 	_snake->update();
 

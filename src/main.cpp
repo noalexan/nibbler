@@ -29,16 +29,20 @@ void input_polling_loop(GLFWwindow *window, Board *board)
 
 int main(int argc, char *argv[])
 {
-	size_t width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
+	size_t       width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
+	unsigned int fps = 8;
 
 	int opt;
-	while ((opt = getopt(argc, argv, "w:h:")) != -1) {
+	while ((opt = getopt(argc, argv, "w:h:f:")) != -1) {
 		switch (opt) {
 		case 'w':
 			width = std::stoi(optarg);
 			break;
 		case 'h':
 			height = std::stoi(optarg);
+			break;
+		case 'f':
+			fps = std::stoi(optarg);
 			break;
 		default:
 			std::cerr << "\nUsage: " << argv[0] << " [-w <width>] [-h <height>]" << std::endl;
@@ -75,7 +79,7 @@ int main(int argc, char *argv[])
 
 	std::thread inputPoller(input_polling_loop, window, board);
 
-	constexpr auto frame_time = std::chrono::milliseconds(1000 / 240); // ~240fps
+	const auto frame_time = std::chrono::milliseconds(1000 / fps);
 
 	while (board->isStopped() == false && board->getSnake()->isDead() == false) {
 		auto start_time = std::chrono::high_resolution_clock::now();
@@ -113,9 +117,11 @@ int main(int argc, char *argv[])
 				case TileTypes::SnakeBody:
 					glColor3f(0.8f, 0.5f, 0.3f);
 					break;
+#ifndef NPATHFINDING
 				case TileTypes::Way:
 					glColor3f(0.1f, 0.15f, 0.2f);
 					break;
+#endif
 				case TileTypes::Wall:
 					glColor3f(0.9f, 0.9f, 0.9f);
 					break;
