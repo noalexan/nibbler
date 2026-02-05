@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 {
 	size_t width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
 
-	int    opt;
+	int opt;
 	while ((opt = getopt(argc, argv, "w:h:")) != -1) {
 		switch (opt) {
 		case 'w':
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
 	/**/
 
-	std::thread    inputPoller(input_polling_loop, window, board);
+	std::thread inputPoller(input_polling_loop, window, board);
 
 	constexpr auto frame_time = std::chrono::milliseconds(1000 / 240); // ~240fps
 

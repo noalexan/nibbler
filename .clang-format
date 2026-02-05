@@ -6,13 +6,13 @@ UseTab: ForIndentation
 TabWidth: 4
 AlignConsecutiveAssignments:
   Enabled: true
-  AcrossEmptyLines: true
-  AcrossComments: true
+  AcrossEmptyLines: false
+  AcrossComments: false
   AlignCompound: true
   PadOperators: true
 AlignConsecutiveDeclarations:
   Enabled: true
-  AcrossEmptyLines: true
+  AcrossEmptyLines: false
 AlignConsecutiveMacros: Consecutive
 BreakBeforeBraces: Custom
 BraceWrapping:

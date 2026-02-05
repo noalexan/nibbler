@@ -54,12 +54,9 @@ void Board::spawnTile(enum TileTypes tile)
 
 		std::random_device              rd;
 		std::mt19937                    gen(rd());
-
 		std::uniform_int_distribution<> distr(0, empty_tiles_refs.size() - 1);
 
-		int                             randomIndex = distr(gen);
-
-		empty_tiles_refs[randomIndex].get()         = tile;
+		empty_tiles_refs[distr(gen)].get() = tile;
 	}
 }
 
@@ -85,10 +82,10 @@ void Board::update()
 		spawnTile(TileTypes::RedApple);
 
 #ifndef NPATHFINDING
-	constexpr int                         dx[]      = {0, 0, -1, 1};
-	constexpr int                         dy[]      = {-1, 1, 0, 0};
+	constexpr int dx[] = {0, 0, -1, 1};
+	constexpr int dy[] = {-1, 1, 0, 0};
 
-	constexpr Coordinates                 unvisited = {-1, -1}, obstacle = {-2, -2};
+	constexpr Coordinates unvisited = {-1, -1}, obstacle = {-2, -2};
 
 	const Coordinates                    &head = _snake->getHead();
 	std::vector<std::vector<Coordinates>> parent(_height,
@@ -105,8 +102,8 @@ void Board::update()
 	queue.push(head);
 	parent[head.second][head.first] = head;
 
-	Coordinates foundApple          = unvisited;
-	bool        success             = false;
+	Coordinates foundApple = unvisited;
+	bool        success    = false;
 
 	do {
 		Coordinates current = queue.front();

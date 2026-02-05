@@ -22,11 +22,11 @@ class Board {
 public:
 	class Snake {
 	private:
-		Board               &_board;
+		Board &_board;
 
 		enum SnakeDirections _snakeDirection = SnakeDirections::Right, _snakeDirectionDelay;
 
-		bool                 _isDead         = false;
+		bool _isDead = false;
 
 		class SnakeBlock {
 		private:
@@ -41,7 +41,7 @@ public:
 			inline enum TileTypes     getTile() const { return this->_tile; }
 		};
 
-		inline void                             die() { _isDead = true; }
+		inline void die() { _isDead = true; }
 
 		std::deque<std::unique_ptr<SnakeBlock>> _snakeBlocks;
 
@@ -51,9 +51,9 @@ public:
 
 		virtual ~Snake();
 
-		inline bool               isDead() const { return this->_isDead; }
+		inline bool isDead() const { return this->_isDead; }
 
-		void                      changeDirection(enum SnakeDirections);
+		void changeDirection(enum SnakeDirections);
 
 		inline const Coordinates &getHead() const { return _snakeBlocks.front()->getCoordinates(); }
 		inline const std::deque<std::unique_ptr<SnakeBlock>> &getBlocks() const
@@ -65,19 +65,19 @@ public:
 	};
 
 private:
-	std::unique_ptr<Snake>      _snake;
+	std::unique_ptr<Snake> _snake;
 
 	std::vector<enum TileTypes> _board;
 
-	size_t                      _width;
-	size_t                      _height;
+	size_t _width;
+	size_t _height;
 
-	unsigned int                _how_many_green_apples;
-	unsigned int                _how_many_red_apples;
+	unsigned int _how_many_green_apples;
+	unsigned int _how_many_red_apples;
 
-	bool                        _stopped = false;
+	bool _stopped = false;
 
-	inline enum TileTypes      &getTile(const Coordinates &coord)
+	inline enum TileTypes &getTile(const Coordinates &coord)
 	{
 		return _board[coord.second * _width + coord.first];
 	}
@@ -101,8 +101,8 @@ public:
 	inline void                  stop() { _stopped = true; }
 	inline bool                  isStopped() const { return _stopped; }
 
-	inline enum TileTypes        at(int x, int y) const { return _board.at(y * _width + x); }
-	inline enum TileTypes        at(const Coordinates &coord) const
+	inline enum TileTypes at(int x, int y) const { return _board.at(y * _width + x); }
+	inline enum TileTypes at(const Coordinates &coord) const
 	{
 		return at(coord.first, coord.second);
 	}
