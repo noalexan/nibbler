@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <nibbler.hpp>
 
 Board::Snake::SnakeBlock::SnakeBlock(Board &board, const Coordinates &_coord)
@@ -8,11 +9,27 @@ Board::Snake::SnakeBlock::SnakeBlock(Board &board, const Coordinates &_coord)
 
 Board::Snake::SnakeBlock::~SnakeBlock() { _tile = TileTypes::Empty; }
 
-Board::Snake::Snake(Board &board, unsigned int base_snake_size)
-    : _board(board), _snakeDirectionDelay(_snakeDirection)
+Coordinates operator+(const Coordinates &a, const Coordinates &b)
 {
-	Coordinates base_snake_head(board.getWidth() / 2, board.getHeight() / 2);
-	for (int i = 0; i < base_snake_size; i++, base_snake_head.first--)
+	return {a.first + b.first, a.second + b.second};
+}
+
+Coordinates &operator+=(Coordinates &a, const Coordinates &b)
+{
+	a.first  += b.first;
+	a.second += b.second;
+	return a;
+}
+
+Board::Snake::Snake(Board &board, unsigned int base_snake_size) : _board(board)
+{
+	Coordinates base_snake_head(rand() % (board.getWidth() - 2), rand() % (board.getHeight() - 2));
+	const int   idx = rand() % 4;
+
+	_snakeDirection      = static_cast<enum SnakeDirections>(idx ^ 1);
+	_snakeDirectionDelay = _snakeDirection;
+
+	for (; base_snake_size--; base_snake_head += directions_vectors[idx])
 		_snakeBlocks.push_back(std::make_unique<SnakeBlock>(_board, base_snake_head));
 }
 
@@ -26,9 +43,8 @@ void Board::Snake::changeDirection(enum SnakeDirections direction)
 
 void Board::Snake::update()
 {
-	Coordinates coord                                   = getHead();
-	_snakeDirection                                     = _snakeDirectionDelay;
-	(_snakeDirection & 2 ? coord.first : coord.second) += _snakeDirection & 1 ? 1 : -1;
+	_snakeDirection   = _snakeDirectionDelay;
+	Coordinates coord = getHead() + directions_vectors[_snakeDirection];
 
 	switch (_board.getTile(coord)) {
 	case TileTypes::Wall:

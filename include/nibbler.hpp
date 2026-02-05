@@ -33,7 +33,8 @@ public:
 	private:
 		Board &_board;
 
-		enum SnakeDirections _snakeDirection = SnakeDirections::Right, _snakeDirectionDelay;
+		enum SnakeDirections         _snakeDirection, _snakeDirectionDelay;
+		constexpr static Coordinates directions_vectors[] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
 
 		bool _isDead = false;
 

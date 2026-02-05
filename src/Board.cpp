@@ -1,8 +1,12 @@
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
 #include <functional>
 #include <nibbler.hpp>
-#include <queue>
-#include <random>
+
+#ifndef NPATHFINDING
+# include <queue>
+#endif
 
 Board::Board() : Board(DEFAULT_WIDTH, DEFAULT_HEIGHT) {}
 
@@ -28,6 +32,8 @@ Board::Board(size_t width, size_t height, unsigned int how_many_green_apples,
 	assert((base_snake_size * 2) <= _width && _width <= 256);
 	assert((base_snake_size * 2) <= _height && _height <= 256);
 
+	srand(time(0));
+
 	_board.resize(_width * _height, TileTypes::Empty);
 
 	for (size_t y = 0; y < _height; y++)
@@ -42,22 +48,15 @@ Board::~Board() {}
 
 void Board::spawnTile(enum TileTypes tile)
 {
-	size_t empty_tiles_count = std::count(_board.begin(), _board.end(), TileTypes::Empty);
+	std::vector<std::reference_wrapper<enum TileTypes>> empty_tiles_refs;
+	empty_tiles_refs.reserve(_board.size());
 
-	if (empty_tiles_count) {
-		std::vector<std::reference_wrapper<enum TileTypes>> empty_tiles_refs;
-		empty_tiles_refs.reserve(empty_tiles_count);
+	for (auto &i : _board)
+		if (i == TileTypes::Empty)
+			empty_tiles_refs.push_back(i);
 
-		for (auto &i : _board)
-			if (i == TileTypes::Empty)
-				empty_tiles_refs.push_back(i);
-
-		std::random_device              rd;
-		std::mt19937                    gen(rd());
-		std::uniform_int_distribution<> distr(0, empty_tiles_refs.size() - 1);
-
-		empty_tiles_refs[distr(gen)].get() = tile;
-	}
+	if (!empty_tiles_refs.empty())
+		empty_tiles_refs[rand() % empty_tiles_refs.size()].get() = tile;
 }
 
 #ifndef NPATHFINDING
