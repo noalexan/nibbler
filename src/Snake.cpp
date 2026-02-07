@@ -34,9 +34,9 @@ void Board::Snake::init()
 	if (base_snake_head.second + _base_snake_size - 1 < _board->getHeight() - 1)
 		valid_directions.push_back(SnakeDirections::Down);
 
-	int idx              = valid_directions[_board->randomInt(valid_directions.size())];
-	_snakeDirection      = static_cast<enum SnakeDirections>(idx ^ 1);
-	_snakeDirectionDelay = _snakeDirection;
+	int idx         = valid_directions[_board->randomInt(valid_directions.size())];
+	_direction      = static_cast<enum SnakeDirections>(idx ^ 1);
+	_directionDelay = _direction;
 
 	for (unsigned int i = _base_snake_size; i--; base_snake_head += directions_vectors[idx]) {
 		_board->getTile(base_snake_head) = TileTypes::SnakeBody;
@@ -48,14 +48,14 @@ Board::Snake::~Snake() {}
 
 void Board::Snake::changeDirection(enum SnakeDirections direction)
 {
-	if ((_snakeDirection & 2) ^ (direction & 2))
-		_snakeDirectionDelay = direction;
+	if ((_direction & 2) ^ (direction & 2))
+		_directionDelay = direction;
 }
 
 void Board::Snake::update()
 {
-	_snakeDirection   = _snakeDirectionDelay;
-	Coordinates coord = getHead() + directions_vectors[_snakeDirection];
+	_direction        = _directionDelay;
+	Coordinates coord = getHead() + directions_vectors[_direction];
 
 	switch (_board->getTile(coord)) {
 	case TileTypes::Wall:

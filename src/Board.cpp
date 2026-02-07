@@ -114,8 +114,7 @@ void Board::update()
 	std::vector<std::vector<Coordinates>> parent(_height,
 	                                             std::vector<Coordinates>(_width, unvisited));
 
-	for (const auto &part : _snake.getBlocks()) {
-		const Coordinates &coord = part->getCoordinates();
+	for (const Coordinates &coord : _snake.getTail()) {
 		if (coord != head) {
 			parent[coord.second][coord.first] = {-2, -2};
 		}

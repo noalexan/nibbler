@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 	while (!board.isStopped()) {
 		auto start_time = std::chrono::high_resolution_clock::now();
 
-		board->update();
+		board.update();
 
 		glfwMakeContextCurrent(window);
 

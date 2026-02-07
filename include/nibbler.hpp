@@ -26,7 +26,7 @@ public:
 		Board *_board;
 		friend class Board;
 
-		enum SnakeDirections         _snakeDirection, _snakeDirectionDelay;
+		enum SnakeDirections         _direction, _directionDelay;
 		constexpr static Coordinates directions_vectors[] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
 
 		unsigned int _base_snake_size;
@@ -48,7 +48,8 @@ public:
 
 		inline bool isDead() const { return this->_isDead; }
 
-		void changeDirection(enum SnakeDirections);
+		void                        changeDirection(enum SnakeDirections);
+		inline enum SnakeDirections getDirection() const { return _direction; }
 
 		inline size_t                         length() const { return _tail.size(); }
 		inline const Coordinates             &getHead() const { return _tail.front(); }
