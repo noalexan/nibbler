@@ -21,6 +21,7 @@ Board::Board(size_t width, size_t height, unsigned int how_many_green_apples,
 
 Board::Board(size_t width, size_t height, unsigned int how_many_green_apples,
              unsigned int how_many_red_apples, unsigned int base_snake_size)
+    : _snake(this, base_snake_size)
 {
 	_width                 = width;
 	_height                = height;
@@ -39,12 +40,20 @@ Board::Board(size_t width, size_t height, unsigned int how_many_green_apples,
 			if (y == 0 || y == _height - 1 || x == 0 || x == _width - 1)
 				_board[y * _width + x] = TileTypes::Wall;
 
-	_snake = std::make_unique<Snake>(*this, base_snake_size);
+	_snake.init();
 
 	for (unsigned int i = 0; i < _how_many_green_apples; i++)
 		spawnTile(TileTypes::GreenApple);
 	for (unsigned int i = 0; i < _how_many_red_apples; i++)
 		spawnTile(TileTypes::RedApple);
+}
+
+Board::Board(const Board &other)
+    : _snake(other._snake), _board(other._board), _rng(other._rng), _width(other._width),
+      _height(other._height), _how_many_green_apples(other._how_many_green_apples),
+      _how_many_red_apples(other._how_many_red_apples), _stopped(other._stopped)
+{
+	_snake._board = this;
 }
 
 Board::~Board() {}
@@ -80,9 +89,9 @@ void Board::update()
 			i = TileTypes::Empty;
 #endif
 
-	_snake->update();
+	_snake.update();
 
-	if (_snake->length() == (_width - 2) * (_height - 2) || _snake->isDead()) {
+	if (_snake.length() == (_width - 2) * (_height - 2) || _snake.isDead()) {
 		stop();
 		return;
 	}
@@ -101,11 +110,11 @@ void Board::update()
 
 	constexpr Coordinates unvisited = {-1, -1}, obstacle = {-2, -2};
 
-	const Coordinates                    &head = _snake->getHead();
+	const Coordinates                    &head = _snake.getHead();
 	std::vector<std::vector<Coordinates>> parent(_height,
 	                                             std::vector<Coordinates>(_width, unvisited));
 
-	for (const auto &part : _snake->getBlocks()) {
+	for (const auto &part : _snake.getBlocks()) {
 		const Coordinates &coord = part->getCoordinates();
 		if (coord != head) {
 			parent[coord.second][coord.first] = {-2, -2};
@@ -154,12 +163,12 @@ void Board::update()
 	}
 
 	if (is_any_of(at(head.first, head.second - 1), TileTypes::Way, TileTypes::GreenApple))
-		_snake->changeDirection(SnakeDirections::Up);
+		_snake.changeDirection(SnakeDirections::Up);
 	else if (is_any_of(at(head.first, head.second + 1), TileTypes::Way, TileTypes::GreenApple))
-		_snake->changeDirection(SnakeDirections::Down);
+		_snake.changeDirection(SnakeDirections::Down);
 	else if (is_any_of(at(head.first - 1, head.second), TileTypes::Way, TileTypes::GreenApple))
-		_snake->changeDirection(SnakeDirections::Left);
+		_snake.changeDirection(SnakeDirections::Left);
 	else if (is_any_of(at(head.first + 1, head.second), TileTypes::Way, TileTypes::GreenApple))
-		_snake->changeDirection(SnakeDirections::Right);
+		_snake.changeDirection(SnakeDirections::Right);
 #endif
 }

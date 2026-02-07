@@ -4,7 +4,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
-#include <memory>
 #include <random>
 #include <unistd.h>
 #include <vector>
@@ -18,67 +17,48 @@
 using Coordinates = std::pair<size_t, size_t>;
 
 enum SnakeDirections : uint8_t { Up, Down, Left, Right };
-enum TileTypes : uint8_t {
-	Empty,
-	Wall,
-	GreenApple,
-	RedApple,
-	SnakeBody,
-#ifndef NPATHFINDING
-	Way
-#endif
-};
+enum TileTypes : uint8_t { Empty, Wall, GreenApple, RedApple, SnakeBody, Way };
 
 class Board {
 public:
 	class Snake {
 	private:
-		Board &_board;
+		Board *_board;
+		friend class Board;
 
 		enum SnakeDirections         _snakeDirection, _snakeDirectionDelay;
 		constexpr static Coordinates directions_vectors[] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
 
+		unsigned int _base_snake_size;
+
 		bool _isDead = false;
-
-		class SnakeBlock {
-		private:
-			enum TileTypes &_tile;
-			Coordinates     _coordinates;
-
-		public:
-			SnakeBlock(Board &board, const Coordinates &_coord);
-			virtual ~SnakeBlock();
-
-			inline const Coordinates &getCoordinates() const { return this->_coordinates; }
-			inline enum TileTypes     getTile() const { return this->_tile; }
-		};
 
 		inline void die() { _isDead = true; }
 
-		std::deque<std::unique_ptr<SnakeBlock>> _snakeBlocks;
+		std::deque<Coordinates> _tail;
 
 	public:
-		Snake(Board &board);
-		Snake(Board &board, unsigned int base_snake_size);
+		Snake(Board *board);
+		Snake(Board *board, unsigned int base_snake_size);
+		Snake(const Snake &) = default;
 
 		virtual ~Snake();
+
+		void init();
 
 		inline bool isDead() const { return this->_isDead; }
 
 		void changeDirection(enum SnakeDirections);
 
-		inline size_t             length() { return _snakeBlocks.size(); }
-		inline const Coordinates &getHead() const { return _snakeBlocks.front()->getCoordinates(); }
-		inline const std::deque<std::unique_ptr<SnakeBlock>> &getBlocks() const
-		{
-			return _snakeBlocks;
-		}
+		inline size_t                         length() const { return _tail.size(); }
+		inline const Coordinates             &getHead() const { return _tail.front(); }
+		inline const std::deque<Coordinates> &getTail() const { return _tail; }
 
 		void update();
 	};
 
 private:
-	std::unique_ptr<Snake> _snake;
+	Snake _snake;
 
 	std::vector<enum TileTypes> _board;
 
@@ -113,14 +93,18 @@ public:
 	Board(size_t width, size_t height, unsigned int how_many_green_apples,
 	      unsigned int how_many_red_apples, unsigned int base_snake_size);
 
+	Board(const Board &);
+
 	virtual ~Board();
 
 	inline size_t                getWidth() const { return _width; }
 	inline size_t                getHeight() const { return _height; }
 	inline const enum TileTypes *getRawBoard() const { return _board.data(); }
-	inline Snake                *getSnake() const { return _snake.get(); }
 	inline void                  stop() { _stopped = true; }
 	inline bool                  isStopped() const { return _stopped; }
+
+	inline const Snake &getSnake() const { return _snake; }
+	inline Snake       &getSnake() { return _snake; }
 
 	inline enum TileTypes at(int x, int y) const { return _board.at(y * _width + x); }
 	inline enum TileTypes at(const Coordinates &coord) const

@@ -9,7 +9,7 @@
 
 void input_polling_loop(GLFWwindow *window, Board *board)
 {
-	while (board->isStopped() == false && board->getSnake()->isDead() == false) {
+	while (!board->isStopped()) {
 		glfwPollEvents();
 
 		if (glfwWindowShouldClose(window)) {
@@ -17,13 +17,13 @@ void input_polling_loop(GLFWwindow *window, Board *board)
 		}
 
 		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-			board->getSnake()->changeDirection(SnakeDirections::Up);
+			board->getSnake().changeDirection(SnakeDirections::Up);
 		else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-			board->getSnake()->changeDirection(SnakeDirections::Left);
+			board->getSnake().changeDirection(SnakeDirections::Left);
 		else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-			board->getSnake()->changeDirection(SnakeDirections::Down);
+			board->getSnake().changeDirection(SnakeDirections::Down);
 		else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-			board->getSnake()->changeDirection(SnakeDirections::Right);
+			board->getSnake().changeDirection(SnakeDirections::Right);
 	}
 }
 
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	Board *board = new Board(width, height);
+	Board board(width, height);
 
 	if (!glfwInit()) {
 		std::cerr << "Failed to init GLFW" << std::endl;
@@ -70,39 +70,38 @@ int main(int argc, char *argv[])
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(0.0f, board->getWidth(), board->getHeight(), 0.0f, -1.0f, 1.0f);
+	glOrtho(0.0f, board.getWidth(), board.getHeight(), 0.0f, -1.0f, 1.0f);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	/**/
 
-	std::thread inputPoller(input_polling_loop, window, board);
+	std::thread inputPoller(input_polling_loop, window, &board);
 
 	const auto frame_time = std::chrono::milliseconds(1000 / fps);
 
-	while (board->isStopped() == false && board->getSnake()->isDead() == false) {
+	while (!board.isStopped()) {
 		auto start_time = std::chrono::high_resolution_clock::now();
 
 		board->update();
 
 		glfwMakeContextCurrent(window);
 
-		int bufferWidth, bufferHeight;
 		glfwGetFramebufferSize(window, &bufferWidth, &bufferHeight);
 		glViewport(0, 0, bufferWidth, bufferHeight);
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		const enum TileTypes *raw    = board->getRawBoard();
-		size_t                width  = board->getWidth();
-		size_t                height = board->getHeight();
+		const enum TileTypes *raw    = board.getRawBoard();
+		size_t                width  = board.getWidth();
+		size_t                height = board.getHeight();
 
 		glBegin(GL_QUADS);
 		for (size_t y = 0; y < height; ++y) {
 			for (size_t x = 0; x < width; ++x) {
-				TileTypes tile = board->at(x, y);
+				TileTypes tile = board.at(x, y);
 
 				if (tile == TileTypes::Empty)
 					continue;
@@ -150,8 +149,6 @@ int main(int argc, char *argv[])
 	}
 
 	/**/
-
-	delete board;
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
