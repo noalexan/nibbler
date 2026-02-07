@@ -1,6 +1,7 @@
 #pragma once
 
 #include <assert.h>
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <memory>
@@ -66,6 +67,7 @@ public:
 
 		void changeDirection(enum SnakeDirections);
 
+		inline size_t             length() { return _snakeBlocks.size(); }
 		inline const Coordinates &getHead() const { return _snakeBlocks.front()->getCoordinates(); }
 		inline const std::deque<std::unique_ptr<SnakeBlock>> &getBlocks() const
 		{

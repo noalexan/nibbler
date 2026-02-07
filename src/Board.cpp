@@ -71,6 +71,9 @@ template <typename T, typename... Args> static bool is_any_of(const T &val, Args
 
 void Board::update()
 {
+	if (_stopped)
+		return;
+
 #ifndef NPATHFINDING
 	for (auto &i : _board)
 		if (i == TileTypes::Way)
@@ -78,6 +81,11 @@ void Board::update()
 #endif
 
 	_snake->update();
+
+	if (_snake->length() == (_width - 2) * (_height - 2) || _snake->isDead()) {
+		stop();
+		return;
+	}
 
 	for (unsigned int count = std::count(_board.begin(), _board.end(), TileTypes::GreenApple);
 	     count < _how_many_green_apples; count++)
