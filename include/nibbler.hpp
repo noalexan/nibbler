@@ -35,6 +35,9 @@ public:
 
 		inline void die() { _isDead = true; }
 
+		unsigned int eaten_red_apple   = 0;
+		unsigned int eaten_green_apple = 0;
+
 		std::deque<Coordinates> _tail;
 
 	public:
@@ -51,8 +54,10 @@ public:
 		void                        changeDirection(enum SnakeDirections);
 		inline enum SnakeDirections getDirection() const { return _direction; }
 
-		inline size_t                         length() const { return _tail.size(); }
-		inline const Coordinates             &getHead() const { return _tail.front(); }
+		inline size_t             length() const { return _tail.size(); }
+		inline unsigned int       howManyRedApplesWereEaten() const { return eaten_red_apple; }
+		inline unsigned int       howManyGreenApplesWereEaten() const { return eaten_green_apple; }
+		inline const Coordinates &getHead() const { return _tail.front(); }
 		inline const std::deque<Coordinates> &getTail() const { return _tail; }
 
 		void update();
@@ -103,6 +108,12 @@ public:
 	inline const enum TileTypes *getRawBoard() const { return _board.data(); }
 	inline void                  stop() { _stopped = true; }
 	inline bool                  isStopped() const { return _stopped; }
+
+	inline size_t getScore() const
+	{
+		return (_snake.length() * 100) + (_snake.howManyGreenApplesWereEaten() * 10) -
+		       (_snake.howManyRedApplesWereEaten() * 15);
+	}
 
 	inline const Snake &getSnake() const { return _snake; }
 	inline Snake       &getSnake() { return _snake; }

@@ -64,19 +64,28 @@ void Board::Snake::update()
 		break;
 
 	case TileTypes::RedApple:
-		if (_tail.size() & ~1) {
+		if (_tail.size() == 1) {
+			die();
+		} else {
 			_board->getTile(_tail.back()) = TileTypes::Empty;
 			_tail.pop_back();
-		} else {
-			die();
-			break;
+			_board->getTile(_tail.back()) = TileTypes::Empty;
+			_tail.pop_back();
+			_board->getTile(coord) = TileTypes::SnakeBody;
+			_tail.push_front(coord);
 		}
+		eaten_red_apple++;
+		break;
+
+	case TileTypes::GreenApple:
+		_board->getTile(coord) = TileTypes::SnakeBody;
+		_tail.push_front(coord);
+		eaten_green_apple++;
+		break;
 
 	default:
 		_board->getTile(_tail.back()) = TileTypes::Empty;
 		_tail.pop_back();
-
-	case TileTypes::GreenApple:
 		_board->getTile(coord) = TileTypes::SnakeBody;
 		_tail.push_front(coord);
 		break;
