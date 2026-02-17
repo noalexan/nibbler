@@ -33,12 +33,19 @@ Board::Board(size_t width, size_t height, unsigned int how_many_green_apples,
 
 	_rng.seed(std::random_device{}());
 
+#ifndef NWALLS
+	_width  += 2;
+	_height += 2;
+#endif
+
 	_board.resize(_width * _height, TileTypes::Empty);
 
+#ifndef NWALLS
 	for (size_t y = 0; y < _height; y++)
 		for (size_t x = 0; x < _width; x++)
 			if (y == 0 || y == _height - 1 || x == 0 || x == _width - 1)
 				_board[y * _width + x] = TileTypes::Wall;
+#endif
 
 	_snake.init();
 
@@ -161,13 +168,13 @@ void Board::update()
 		}
 	}
 
-	if (is_any_of(at(head.first, head.second - 1), TileTypes::Way, TileTypes::GreenApple))
-		_snake.changeDirection(SnakeDirections::Up);
-	else if (is_any_of(at(head.first, head.second + 1), TileTypes::Way, TileTypes::GreenApple))
-		_snake.changeDirection(SnakeDirections::Down);
-	else if (is_any_of(at(head.first - 1, head.second), TileTypes::Way, TileTypes::GreenApple))
-		_snake.changeDirection(SnakeDirections::Left);
-	else if (is_any_of(at(head.first + 1, head.second), TileTypes::Way, TileTypes::GreenApple))
-		_snake.changeDirection(SnakeDirections::Right);
+	// if (is_any_of(at(head.first, head.second - 1), TileTypes::Way, TileTypes::GreenApple))
+	// 	_snake.changeDirection(SnakeDirections::Up);
+	// else if (is_any_of(at(head.first, head.second + 1), TileTypes::Way, TileTypes::GreenApple))
+	// 	_snake.changeDirection(SnakeDirections::Down);
+	// else if (is_any_of(at(head.first - 1, head.second), TileTypes::Way, TileTypes::GreenApple))
+	// 	_snake.changeDirection(SnakeDirections::Left);
+	// else if (is_any_of(at(head.first + 1, head.second), TileTypes::Way, TileTypes::GreenApple))
+	// 	_snake.changeDirection(SnakeDirections::Right);
 #endif
 }

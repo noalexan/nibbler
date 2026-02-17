@@ -57,37 +57,46 @@ void Board::Snake::update()
 	_direction        = _directionDelay;
 	Coordinates coord = getHead() + directions_vectors[_direction];
 
-	switch (_board->getTile(coord)) {
-	case TileTypes::Wall:
-	case TileTypes::SnakeBody:
-		die();
-		break;
+	if (_isDead)
+		;
 
-	case TileTypes::RedApple:
-		if (_tail.size() == 1) {
+	else if ((0 > coord.first || coord.first >= _board->getWidth()) ||
+	         (0 > coord.second || coord.second >= _board->getHeight()))
+		die();
+
+	else {
+		switch (_board->getTile(coord)) {
+		case TileTypes::Wall:
+		case TileTypes::SnakeBody:
 			die();
-		} else {
-			_board->getTile(_tail.back()) = TileTypes::Empty;
-			_tail.pop_back();
+			break;
+
+		case TileTypes::RedApple:
+			if (_tail.size() == 1) {
+				die();
+			} else {
+				_board->getTile(_tail.back()) = TileTypes::Empty;
+				_tail.pop_back();
+				_board->getTile(_tail.back()) = TileTypes::Empty;
+				_tail.pop_back();
+				_board->getTile(coord) = TileTypes::SnakeBody;
+				_tail.push_front(coord);
+			}
+			eaten_red_apple++;
+			break;
+
+		case TileTypes::GreenApple:
+			_board->getTile(coord) = TileTypes::SnakeBody;
+			_tail.push_front(coord);
+			eaten_green_apple++;
+			break;
+
+		default:
 			_board->getTile(_tail.back()) = TileTypes::Empty;
 			_tail.pop_back();
 			_board->getTile(coord) = TileTypes::SnakeBody;
 			_tail.push_front(coord);
+			break;
 		}
-		eaten_red_apple++;
-		break;
-
-	case TileTypes::GreenApple:
-		_board->getTile(coord) = TileTypes::SnakeBody;
-		_tail.push_front(coord);
-		eaten_green_apple++;
-		break;
-
-	default:
-		_board->getTile(_tail.back()) = TileTypes::Empty;
-		_tail.pop_back();
-		_board->getTile(coord) = TileTypes::SnakeBody;
-		_tail.push_front(coord);
-		break;
 	}
 }
